@@ -1,43 +1,37 @@
 name: Deploy VitePress Blog to GitHub Pages
 
-# 触发条件：当 main 分支有 push 或 pull request 时自动运行
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
-# 任务定义
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. 拉取代码到 GitHub Actions 服务器
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 拉取完整历史，用于生成页面时间等信息
+          fetch-depth: 0
 
-      # 2. 安装 Node.js 环境
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20  # 使用最新稳定版 Node.js
-          cache: 'npm'      # 缓存依赖，加速构建
+          node-version: 20
+          cache: 'npm'
 
-      # 3. 安装项目依赖
       - name: Install dependencies
         run: npm install
 
-      # 4. 构建 VitePress 静态文件
+      # 关键：根目录构建，不需要 docs/ 前缀
       - name: Build VitePress site
-        run: npm run docs:build
+        run: npm run build
 
-      # 5. 部署到 GitHub Pages
+      # 关键：指定正确的构建输出目录
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          # 使用 GitHub 自动生成的 Token 进行部署
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # 指定 VitePress 构建后的静态文件目录
-          publish_dir: ./docs/.vitepress/dist
+          # 根目录构建的输出路径是 .vitepress/dist
+          publish_dir: ./.vitepress/dist
